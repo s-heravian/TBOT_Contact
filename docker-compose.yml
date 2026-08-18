@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    image: ghcr.io/s-heravian/tbot-contact:V1.0.2
+    container_name: tbot_app
+    restart: unless-stopped
+    ports:
+      - "80:8080" # serversideup runs nginx on 8080 by default. Map to host port 80.
+    env_file:
+      - .env
+    networks:
+      - tbot_network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: tbot_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-tbot}
+      MYSQL_USER: ${DB_USERNAME:-tbot_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - tbot_network
+
+networks:
+  tbot_network:
+    driver: bridge
+
+volumes:
+  dbdata:
